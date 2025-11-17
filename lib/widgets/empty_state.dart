@@ -5,9 +5,9 @@ class EmptyState extends StatelessWidget {
   final String? searchQuery;
 
   const EmptyState({
-    Key? key,
+    super.key,
     this.searchQuery,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,35 +15,105 @@ class EmptyState extends StatelessWidget {
     
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(40.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              searchQuery != null && searchQuery!.isNotEmpty
-                  ? Icons.search_off
-                  : Icons.note_add_outlined,
-              size: 64,
-              color: isDark ? Colors.grey[600] : Colors.grey[400],
+            // Animated icon container
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [const Color(0xFF667EEA).withValues(alpha: 0.2), const Color(0xFF764BA2).withValues(alpha: 0.2)]
+                      : [const Color(0xFF667EEA).withValues(alpha: 0.1), const Color(0xFF764BA2).withValues(alpha: 0.1)],
+                ),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF667EEA).withValues(alpha: 0.3)
+                      : const Color(0xFF667EEA).withValues(alpha: 0.2),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                searchQuery != null && searchQuery!.isNotEmpty
+                    ? Icons.search_off_rounded
+                    : Icons.note_add_rounded,
+                size: 80,
+                color: isDark ? const Color(0xFF667EEA) : const Color(0xFF764BA2),
+              ),
             ),
-            const SizedBox(height: 16),
+            
+            const SizedBox(height: 32),
+            
+            // Title
             Text(
               searchQuery != null && searchQuery!.isNotEmpty
                   ? 'No notes found'
                   : 'No notes yet',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.grey[300] : Colors.grey[800],
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            
+            const SizedBox(height: 12),
+            
+            // Subtitle
             Text(
               searchQuery != null && searchQuery!.isNotEmpty
-                  ? 'Try a different search term'
-                  : 'Create your first note by tapping the + button',
-              style: Theme.of(context).textTheme.bodyMedium,
+                  ? 'Try adjusting your search terms\nor create a new note'
+                  : 'Start organizing your thoughts\nby creating your first note',
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.grey[500] : Colors.grey[600],
+                height: 1.5,
+              ),
               textAlign: TextAlign.center,
             ),
+            
+            const SizedBox(height: 32),
+            
+            // Hint with icon
+            if (searchQuery == null || searchQuery!.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF667EEA).withValues(alpha: 0.15)
+                      : const Color(0xFF667EEA).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF667EEA).withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_rounded,
+                      size: 20,
+                      color: isDark ? const Color(0xFF667EEA) : const Color(0xFF764BA2),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tap the "New Note" button below',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

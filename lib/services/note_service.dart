@@ -1,23 +1,18 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/note.dart';
 
 /// Service for managing note persistence using local file storage.
-/// 
-/// IMPORTANT: Uses [Directory.systemTemp] as fallback storage.
-/// This location may be cleared by the OS, especially on mobile platforms.
-/// 
-/// For production apps, use `path_provider` package:
-/// ```
-/// import 'package:path_provider/path_provider.dart';
-/// final dir = await getApplicationDocumentsDirectory();
-/// ```
-/// This provides a stable, app-specific directory.
+/// Uses path_provider for native platforms and SharedPreferences for web.
 class NotesService {
   static const String _fileName = 'notes_data.json';
+  static const String _webStorageKey = 'notes_data';
   
   List<Note> _notes = [];
-  late Directory _storageDir;
+  Directory? _storageDir;
   bool _initialized = false;
 
   /// Initialize the service and load notes from storage.
@@ -26,9 +21,14 @@ class NotesService {
     if (_initialized) return;
 
     try {
-      // Using systemTemp as fallback. In production, use path_provider.
-      _storageDir = Directory.systemTemp;
-      await _load();
+      if (kIsWeb) {
+        // On web, use SharedPreferences
+        await _load();
+      } else {
+        // On native platforms, use file system
+        _storageDir = await getApplicationDocumentsDirectory();
+        await _load();
+      }
       _initialized = true;
     } catch (e) {
       print('Error initializing NotesService: $e');
@@ -108,28 +108,54 @@ class NotesService {
 
   /// Load notes from JSON file.
   Future<void> _load() async {
-    final file = File('${_storageDir.path}/$_fileName');
-    if (!await file.exists()) {
-      _notes = _getDefaultNotes();
-      return;
-    }
+    if (kIsWeb) {
+      // Load from SharedPreferences on web
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final String? jsonString = prefs.getString(_webStorageKey);
+        if (jsonString == null || jsonString.isEmpty) {
+          _notes = _getDefaultNotes();
+          return;
+        }
+        final jsonData = jsonDecode(jsonString) as List;
+        _notes = jsonData.map((item) => Note.fromJson(item as Map<String, dynamic>)).toList();
+      } catch (e) {
+        print('Error loading notes from web storage: $e');
+        _notes = _getDefaultNotes();
+      }
+    } else {
+      // Load from file system on native platforms
+      final file = File('${_storageDir!.path}/$_fileName');
+      if (!await file.exists()) {
+        _notes = _getDefaultNotes();
+        return;
+      }
 
-    try {
-      final contents = await file.readAsString();
-      final jsonData = jsonDecode(contents) as List;
-      _notes = jsonData.map((item) => Note.fromJson(item as Map<String, dynamic>)).toList();
-    } catch (e) {
-      print('Error loading notes: $e');
-      _notes = _getDefaultNotes();
+      try {
+        final contents = await file.readAsString();
+        final jsonData = jsonDecode(contents) as List;
+        _notes = jsonData.map((item) => Note.fromJson(item as Map<String, dynamic>)).toList();
+      } catch (e) {
+        print('Error loading notes: $e');
+        _notes = _getDefaultNotes();
+      }
     }
   }
 
-  /// Persist notes to JSON file.
+  /// Persist notes to JSON file or web storage.
   Future<void> _save() async {
     try {
-      final file = File('${_storageDir.path}/$_fileName');
       final jsonData = jsonEncode(_notes.map((note) => note.toJson()).toList());
-      await file.writeAsString(jsonData);
+      
+      if (kIsWeb) {
+        // Save to SharedPreferences on web
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_webStorageKey, jsonData);
+      } else {
+        // Save to file system on native platforms
+        final file = File('${_storageDir!.path}/$_fileName');
+        await file.writeAsString(jsonData);
+      }
     } catch (e) {
       print('Error saving notes: $e');
     }

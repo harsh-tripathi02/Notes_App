@@ -10,11 +10,11 @@ class EditorScreen extends StatefulWidget {
   final VoidCallback onSave;
 
   const EditorScreen({
-    Key? key,
+    super.key,
     required this.notesService,
     this.note,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<EditorScreen> createState() => _EditorScreenState();
@@ -184,6 +184,7 @@ class _EditorScreenState extends State<EditorScreen> {
         ),
         floatingActionButton: _hasChanges
             ? FloatingActionButton.extended(
+                heroTag: 'editor_save_fab',
                 onPressed: _isSaving ? null : _saveNote,
                 label: const Text('Save'),
                 icon: const Icon(Icons.check),

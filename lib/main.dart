@@ -13,7 +13,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   final NotesService notesService;
 
-  const MyApp({Key? key, required this.notesService}) : super(key: key);
+  const MyApp({super.key, required this.notesService});
 
   @override
   State<MyApp> createState() => _MyAppState();

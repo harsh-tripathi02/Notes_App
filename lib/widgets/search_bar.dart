@@ -6,10 +6,10 @@ class SearchBar extends StatefulWidget {
   final String hintText;
 
   const SearchBar({
-    Key? key,
+    super.key,
     required this.onChanged,
     this.hintText = 'Search notes...',
-  }) : super(key: key);
+  });
 
   @override
   State<SearchBar> createState() => _SearchBarState();
